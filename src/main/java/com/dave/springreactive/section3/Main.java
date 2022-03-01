@@ -2,18 +2,26 @@ package com.dave.springreactive.section3;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Flow.*;
 
 public class Main {
-  public static void main(String[] args) {
-    Publisher<Integer> pub = getPub();
+  public static void main(String[] args) throws InterruptedException {
+    ExecutorService es = Executors.newSingleThreadExecutor();
+
+    Publisher<Integer> pub = getPub(es);
     Subscriber<Integer> sub = getSub();
 
     pub.subscribe(sub);
+
+    es.awaitTermination(1, TimeUnit.SECONDS);
+    es.shutdown();
   }
 
-  private static Publisher<Integer> getPub() {
+  private static Publisher<Integer> getPub(ExecutorService es) {
     return new Publisher<>() {
       @Override
       public void subscribe(Subscriber<? super Integer> subscriber) {
@@ -22,18 +30,21 @@ public class Main {
         subscriber.onSubscribe(new Subscription() {
           @Override
           public void request(long n) {
-            try {
-              while (n-- > 0) {
-                if (iter.hasNext()) {
-                  subscriber.onNext(iter.next());
-                } else {
-                  subscriber.onComplete();
-                  break;
+            es.execute(() -> {
+              int i = 0;
+              try {
+                while (i++ < n) {
+                  if (iter.hasNext()) {
+                    subscriber.onNext(iter.next());
+                  } else {
+                    subscriber.onComplete();
+                    break;
+                  }
                 }
+              } catch (Exception e) {
+                subscriber.onError(e);
               }
-            } catch (Exception e) {
-              subscriber.onError(e);
-            }
+            });
           }
 
           @Override
