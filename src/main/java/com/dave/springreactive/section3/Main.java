@@ -43,6 +43,8 @@ public class Main {
 
   private static Subscriber<Integer> getSub() {
     return new Subscriber<>() {
+      final int MAX_BUFFER_SIZE = 3;
+      int bufferSize = MAX_BUFFER_SIZE;
       Subscription subscription;
 
       @Override
@@ -52,7 +54,7 @@ public class Main {
         this.subscription = subscription;
 
         // value 갯수만큼 받고싶다고 요청함
-        this.subscription.request(1);
+        this.subscription.request(MAX_BUFFER_SIZE);
       }
 
       @Override
@@ -60,7 +62,10 @@ public class Main {
         System.out.println("Main.onNext");
         System.out.println("item = " + item);
 
-        this.subscription.request(1);
+        if (--bufferSize <= 0) {
+          bufferSize = MAX_BUFFER_SIZE;
+          this.subscription.request(MAX_BUFFER_SIZE);
+        }
       }
 
       @Override
