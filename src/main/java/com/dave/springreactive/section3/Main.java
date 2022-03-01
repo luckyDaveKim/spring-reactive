@@ -22,13 +22,17 @@ public class Main {
         subscriber.onSubscribe(new Subscription() {
           @Override
           public void request(long n) {
-            while (n-- > 0) {
-              if (iter.hasNext()) {
-                subscriber.onNext(iter.next());
-              } else {
-                subscriber.onComplete();
-                break;
+            try {
+              while (n-- > 0) {
+                if (iter.hasNext()) {
+                  subscriber.onNext(iter.next());
+                } else {
+                  subscriber.onComplete();
+                  break;
+                }
               }
+            } catch (Exception e) {
+              subscriber.onError(e);
             }
           }
 
