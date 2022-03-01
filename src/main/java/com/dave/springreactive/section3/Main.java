@@ -43,18 +43,24 @@ public class Main {
 
   private static Subscriber<Integer> getSub() {
     return new Subscriber<>() {
+      Subscription subscription;
+
       @Override
       public void onSubscribe(Subscription subscription) {
         System.out.println("Main.onSubscribe");
 
+        this.subscription = subscription;
+
         // value 갯수만큼 받고싶다고 요청함
-        subscription.request(1);
+        this.subscription.request(1);
       }
 
       @Override
       public void onNext(Integer item) {
         System.out.println("Main.onNext");
         System.out.println("item = " + item);
+
+        this.subscription.request(1);
       }
 
       @Override
