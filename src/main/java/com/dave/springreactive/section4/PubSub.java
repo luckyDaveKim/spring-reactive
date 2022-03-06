@@ -41,27 +41,17 @@ public class PubSub {
   }
 
   private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> fun) {
-    return sub -> pub.subscribe(new Subscriber<>() {
+    return new Publisher<>() {
       @Override
-      public void onSubscribe(Subscription innerSub) {
-        sub.onSubscribe(innerSub);
+      public void subscribe(Subscriber<? super Integer> sub) {
+        pub.subscribe(new DelegateSub(sub) {
+          @Override
+          public void onNext(Integer i) {
+            super.onNext(fun.apply(i));
+          }
+        });
       }
-
-      @Override
-      public void onNext(Integer i) {
-        sub.onNext(fun.apply(i));
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        sub.onError(t);
-      }
-
-      @Override
-      public void onComplete() {
-        sub.onComplete();
-      }
-    });
+    };
   }
 
   private static Subscriber<Integer> getLogSub() {
