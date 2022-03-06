@@ -4,12 +4,14 @@ import reactor.core.publisher.Flux;
 
 public class ReactorExample {
   public static void main(String[] args) {
-    Flux.create(e -> {
+    Flux.<Integer>create(e -> {
           e.next(1);
           e.next(2);
           e.next(3);
           e.complete();
         })
+        .log()
+        .map(i -> i * 10)
         .log()
         .subscribe(System.out::println);
   }
