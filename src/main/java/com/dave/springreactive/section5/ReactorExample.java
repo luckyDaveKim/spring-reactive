@@ -12,6 +12,7 @@ public class ReactorExample {
         })
         .log()
         .map(i -> i * 10)
+        .reduce(0, Integer::sum)
         .log()
         .subscribe(System.out::println);
   }
