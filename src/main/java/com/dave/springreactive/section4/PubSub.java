@@ -6,18 +6,19 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /*
- * pub -> [Data1] -> sumPub -> [Data2] -> logSub
+ * pub -> [Data1] -> reducePub -> [Data2] -> logSub
  * */
 @Slf4j
 public class PubSub {
   public static void main(String[] args) {
     Publisher<Integer> pub = getPub(Stream.iterate(1, i -> i + 1).limit(10).collect(Collectors.toList()));
-    Publisher<Integer> sumPub = getSumPub(pub);
-    sumPub.subscribe(getLogSub());
+    Publisher<Integer> reducePub = getReducePub(pub, 0, (a, b) -> a + b);
+    reducePub.subscribe(getLogSub());
   }
 
   private static Publisher<Integer> getPub(final List<Integer> iter) {
@@ -39,18 +40,18 @@ public class PubSub {
     });
   }
 
-  private static Publisher<Integer> getSumPub(Publisher<Integer> pub) {
+  private static Publisher<Integer> getReducePub(Publisher<Integer> pub, int init, BiFunction<Integer, Integer, Integer> biFun) {
     return sub -> pub.subscribe(new DelegateSub(sub) {
-      int sum = 0;
+      int result = init;
 
       @Override
       public void onNext(Integer i) {
-        sum += i;
+        result = biFun.apply(result, i);
       }
 
       @Override
       public void onComplete() {
-        sub.onNext(sum);
+        sub.onNext(result);
         sub.onComplete();
       }
     });
