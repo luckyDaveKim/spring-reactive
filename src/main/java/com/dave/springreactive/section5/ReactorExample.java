@@ -10,6 +10,7 @@ public class ReactorExample {
           e.next(3);
           e.complete();
         })
+        .log()
         .subscribe(System.out::println);
   }
 }
