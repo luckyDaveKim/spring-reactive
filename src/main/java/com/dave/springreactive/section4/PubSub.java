@@ -6,19 +6,18 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /*
- * pub -> [Data1] -> mapPub -> [Data2] -> logSub
+ * pub -> [Data1] -> sumPub -> [Data2] -> logSub
  * */
 @Slf4j
 public class PubSub {
   public static void main(String[] args) {
     Publisher<Integer> pub = getPub(Stream.iterate(1, i -> i + 1).limit(10).collect(Collectors.toList()));
-    Publisher<Integer> mapPub = mapPub(pub, i -> i * 10);
-    mapPub.subscribe(getLogSub());
+    Publisher<Integer> sumPub = getSumPub(pub);
+    sumPub.subscribe(getLogSub());
   }
 
   private static Publisher<Integer> getPub(final List<Integer> iter) {
@@ -40,18 +39,21 @@ public class PubSub {
     });
   }
 
-  private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> fun) {
-    return new Publisher<>() {
+  private static Publisher<Integer> getSumPub(Publisher<Integer> pub) {
+    return sub -> pub.subscribe(new DelegateSub(sub) {
+      int sum = 0;
+
       @Override
-      public void subscribe(Subscriber<? super Integer> sub) {
-        pub.subscribe(new DelegateSub(sub) {
-          @Override
-          public void onNext(Integer i) {
-            super.onNext(fun.apply(i));
-          }
-        });
+      public void onNext(Integer i) {
+        sum += i;
       }
-    };
+
+      @Override
+      public void onComplete() {
+        sub.onNext(sum);
+        sub.onComplete();
+      }
+    });
   }
 
   private static Subscriber<Integer> getLogSub() {
