@@ -3,10 +3,10 @@ package com.dave.springreactive.section4;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public abstract class DelegateSub<T> implements Subscriber<T> {
-  Subscriber<? super T> sub;
+public abstract class DelegateSub<T, R> implements Subscriber<T> {
+  Subscriber<? super R> sub;
 
-  public DelegateSub(Subscriber<? super T> sub) {
+  public DelegateSub(Subscriber<? super R> sub) {
     this.sub = sub;
   }
 
@@ -17,7 +17,7 @@ public abstract class DelegateSub<T> implements Subscriber<T> {
 
   @Override
   public void onNext(T i) {
-    sub.onNext(i);
+    sub.onNext((R) i);
   }
 
   @Override

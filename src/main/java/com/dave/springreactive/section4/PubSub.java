@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 public class PubSub {
   public static void main(String[] args) {
     Publisher<Integer> pub = getPub(Stream.iterate(1, i -> i + 1).limit(10).collect(Collectors.toList()));
-    Publisher<Integer> reducePub = getReducePub(pub, 0, Integer::sum);
+    Publisher<StringBuilder> reducePub = getReducePub(pub, new StringBuilder(), (a, b) -> a.append(b).append(","));
     reducePub.subscribe(getLogSub());
   }
 
@@ -40,9 +40,9 @@ public class PubSub {
     });
   }
 
-  private static <T> Publisher<T> getReducePub(Publisher<T> pub, T init, BiFunction<T, T, T> biFun) {
-    return sub -> pub.subscribe(new DelegateSub<>(sub) {
-      T result = init;
+  private static <T, R> Publisher<R> getReducePub(Publisher<T> pub, R init, BiFunction<R, T, R> biFun) {
+    return sub -> pub.subscribe(new DelegateSub<T, R>(sub) {
+      R result = init;
 
       @Override
       public void onNext(T i) {
