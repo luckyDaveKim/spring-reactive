@@ -5,14 +5,26 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/*
+ * SubscribeOn 예제 (데이터 생성쪽이 느릴 때)
+ * */
 @Slf4j
 public class Main {
   public static void main(String[] args) {
     Publisher<Integer> pub = getPub();
 
+    // subscribeOn 사용 예
+    Publisher<Integer> subOnPub = sub -> {
+      ExecutorService es = Executors.newSingleThreadExecutor();
+      es.execute(() -> pub.subscribe(sub));
+    };
+
     Subscriber<Integer> subscriber = getSub();
 
-    pub.subscribe(subscriber);
+    subOnPub.subscribe(subscriber);
 
     log.debug("Exit!!");
   }
