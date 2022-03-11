@@ -11,14 +11,11 @@ public class Main {
     ExecutorService es = Executors.newCachedThreadPool();
 
     // execute는 runnable 인터페이스를 받는다.
-    es.execute(() -> {
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        log.error(e.getMessage());
-      }
-
+    // submit은 runnable, callable 인터페이스를 받는다. callable은 리턴값이 존재하며, 예외도 던질 수 있다.
+    es.submit(() -> {
+      Thread.sleep(2000);
       log.info("Async");
+      return "Hello";
     });
 
     log.info("Exit");
