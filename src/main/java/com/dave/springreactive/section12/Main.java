@@ -20,12 +20,12 @@ public class Main {
       return "Hello";
     });
 
-    log.info("Future : {}", f.get());
-
     log.info("Exit");
 
+    log.info("Future : {}", f.get());
+
     /*
-    * Async -> Future -> Exit
+    * Exit -> Async -> Future
     * */
   }
 }
