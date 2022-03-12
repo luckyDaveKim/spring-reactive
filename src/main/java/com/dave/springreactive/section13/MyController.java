@@ -5,6 +5,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.Future;
+
 @Slf4j
 @Component
 public class MyController {
@@ -16,10 +18,14 @@ public class MyController {
 
   @Bean
   public ApplicationRunner run() {
+    /*
+     * run() -> isDone:F -> hello() -> Result -> Exit
+     * */
     return args -> {
       log.info("run()");
-      String result = myService.hello();
-      log.info("Result : {}", result);
+      Future<String> f = myService.hello();
+      log.info("isDone : {}", f.isDone());
+      log.info("Result : {}", f.get());
       log.info("Exit");
     };
   }
