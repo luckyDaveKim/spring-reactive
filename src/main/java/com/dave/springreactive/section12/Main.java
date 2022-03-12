@@ -2,28 +2,17 @@ package com.dave.springreactive.section12;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 @Slf4j
 public class Main {
   public static void main(String[] args) throws ExecutionException, InterruptedException {
-    FutureTask<String> f = new FutureTask<>(() -> {
+    CallbackFutureTask f = new CallbackFutureTask(() -> {
       Thread.sleep(2000);
       log.info("Async");
       return "Hello";
-    }) {
-      @Override
-      protected void done() {
-        try {
-          log.info(get());
-        } catch (InterruptedException | ExecutionException e) {
-          e.printStackTrace();
-        }
-      }
-    };
+    }, log::info);
 
     ExecutorService es = Executors.newCachedThreadPool();
     es.execute(f);
@@ -39,5 +28,27 @@ public class Main {
     /*
      * isDone:F -> Async -> Hello -> Exit -> isDone:T
      * */
+  }
+
+  public static class CallbackFutureTask extends FutureTask<String> {
+    SuccessCallback successCallback;
+
+    public CallbackFutureTask(Callable<String> callable, SuccessCallback successCallback) {
+      super(callable);
+      this.successCallback = Objects.requireNonNull(successCallback);
+    }
+
+    @Override
+    protected void done() {
+      try {
+        successCallback.onSuccess(get());
+      } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  interface SuccessCallback {
+    void onSuccess(String result);
   }
 }
