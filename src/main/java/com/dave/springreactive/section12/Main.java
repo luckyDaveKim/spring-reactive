@@ -20,12 +20,17 @@ public class Main {
       return "Hello";
     });
 
+    log.info("isDone : {}", f.isDone());
+
+    Thread.sleep(2500);
     log.info("Exit");
+
+    log.info("isDone : {}", f.isDone());
 
     log.info("Future : {}", f.get());
 
     /*
-    * Exit -> Async -> Future
-    * */
+     * isDone:F -> Async -> Exit -> isDone:T -> Future
+     * */
   }
 }
