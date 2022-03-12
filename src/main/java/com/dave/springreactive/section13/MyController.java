@@ -4,8 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.Future;
+import org.springframework.util.concurrent.ListenableFuture;
 
 @Slf4j
 @Component
@@ -19,13 +18,13 @@ public class MyController {
   @Bean
   public ApplicationRunner run() {
     /*
-     * run() -> isDone:F -> hello() -> Result -> Exit
+     * run() -> isDone:F -> Exit -> hello() -> Result
      * */
     return args -> {
       log.info("run()");
-      Future<String> f = myService.hello();
+      ListenableFuture<String> f = myService.hello();
+      f.addCallback(result -> log.info("Result : {}", result), e -> log.error(e.getMessage()));
       log.info("isDone : {}", f.isDone());
-      log.info("Result : {}", f.get());
       log.info("Exit");
     };
   }
