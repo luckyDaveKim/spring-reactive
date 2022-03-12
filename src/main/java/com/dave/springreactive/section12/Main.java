@@ -10,9 +10,12 @@ public class Main {
   public static void main(String[] args) throws ExecutionException, InterruptedException {
     CallbackFutureTask f = new CallbackFutureTask(() -> {
       Thread.sleep(2000);
+      if (true) throw new RuntimeException("Async Error!");
       log.info("Async");
       return "Hello";
-    }, log::info);
+    },
+        result -> log.info("Result : {}", result),
+        e -> log.error("Error : {}", e.getMessage()));
 
     ExecutorService es = Executors.newCachedThreadPool();
     es.execute(f);
@@ -26,29 +29,37 @@ public class Main {
     log.info("isDone : {}", f.isDone());
 
     /*
-     * isDone:F -> Async -> Hello -> Exit -> isDone:T
+     * isDone:F -> Error -> Exit -> isDone:T
      * */
   }
 
   public static class CallbackFutureTask extends FutureTask<String> {
     SuccessCallback successCallback;
+    ExceptionCallback exceptionCallback;
 
-    public CallbackFutureTask(Callable<String> callable, SuccessCallback successCallback) {
+    public CallbackFutureTask(Callable<String> callable, SuccessCallback successCallback, ExceptionCallback exceptionCallback) {
       super(callable);
       this.successCallback = Objects.requireNonNull(successCallback);
+      this.exceptionCallback = Objects.requireNonNull(exceptionCallback);
     }
 
     @Override
     protected void done() {
       try {
         successCallback.onSuccess(get());
-      } catch (InterruptedException | ExecutionException e) {
-        e.printStackTrace();
+      } catch (ExecutionException e) {
+        this.exceptionCallback.onError(e.getCause());
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       }
     }
   }
 
   interface SuccessCallback {
     void onSuccess(String result);
+  }
+
+  interface ExceptionCallback {
+    void onError(Throwable t);
   }
 }
