@@ -14,7 +14,16 @@ public class Main {
       Thread.sleep(2000);
       log.info("Async");
       return "Hello";
-    });
+    }) {
+      @Override
+      protected void done() {
+        try {
+          log.info(get());
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
+        }
+      }
+    };
 
     ExecutorService es = Executors.newCachedThreadPool();
     es.execute(f);
@@ -27,10 +36,8 @@ public class Main {
 
     log.info("isDone : {}", f.isDone());
 
-    log.info("Future : {}", f.get());
-
     /*
-     * isDone:F -> Async -> Exit -> isDone:T -> Future
+     * isDone:F -> Async -> Hello -> Exit -> isDone:T
      * */
   }
 }
