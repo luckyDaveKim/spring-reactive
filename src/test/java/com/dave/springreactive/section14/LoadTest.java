@@ -48,4 +48,10 @@ class LoadTest {
     final String url = "http://localhost:8080/async";
     loadTest(url);
   }
+
+  @Test
+  void callableLoadTest() throws InterruptedException {
+    final String url = "http://localhost:8080/callable";
+    loadTest(url);
+  }
 }
