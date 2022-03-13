@@ -12,12 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 class LoadTest {
-  @Test
-  void asyncLoadTest() throws InterruptedException {
+  private void loadTest(final String url) throws InterruptedException {
     ExecutorService es = Executors.newFixedThreadPool(100);
 
     RestTemplate template = new RestTemplate();
-    final String url = "http://localhost:8080/async";
 
     StopWatch mainStopWatch = new StopWatch();
     mainStopWatch.start();
@@ -43,5 +41,11 @@ class LoadTest {
 
     mainStopWatch.stop();
     log.info("Total: {}", mainStopWatch.getTotalTimeSeconds());
+  }
+
+  @Test
+  void asyncLoadTest() throws InterruptedException {
+    final String url = "http://localhost:8080/async";
+    loadTest(url);
   }
 }
